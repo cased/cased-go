@@ -30,7 +30,7 @@ package main
 import "github.com/cased/cased-go"
 
 func main() {
-		p := cased.NewPublisher(
+	p := cased.NewPublisher(
 		cased.WithPublishKey("publish_test_1mY8qb355NWIa3uY00H2fk7elpT"),
 	)
 	cased.SetPublisher(p)
@@ -56,7 +56,7 @@ package main
 import "github.com/cased/cased-go"
 
 func main() {
-		p := cased.NewPublisher(
+	p := cased.NewPublisher(
 		cased.WithPublishKey("publish_test_1mY8qb355NWIa3uY00H2fk7elpT"),
 	)
 	cased.SetPublisher(p)
