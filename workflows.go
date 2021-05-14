@@ -26,6 +26,13 @@ type Workflow struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+type WorkflowParams struct {
+	Params     `json:"-"`
+	Name       *string     `json:"name"`
+	Conditions []Condition `json:"conditions"`
+	Controls   Controls    `json:"controls"`
+}
+
 type ConditionOperator string
 
 const (
