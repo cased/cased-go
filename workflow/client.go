@@ -17,51 +17,60 @@ func client() Client {
 	}
 }
 
+// Create a new workflow
 func New(params *cased.WorkflowParams) (*cased.Workflow, error) {
 	return client().New(params)
 }
 
+// Create a new workflow
 func (c Client) New(params *cased.WorkflowParams) (*cased.Workflow, error) {
 	workflow := &cased.Workflow{}
 	err := c.Endpoint.Call(http.MethodPost, "/workflows", params, workflow)
 	return workflow, err
 }
 
+// Retrieve a workflow by it's ID or name.
 func Get(id string) (*cased.Workflow, error) {
 	return client().Get(id)
 }
 
+// Retrieve a workflow by it's ID or name.
 func (c Client) Get(id string) (*cased.Workflow, error) {
 	workflow := &cased.Workflow{}
 	err := c.Endpoint.Call(http.MethodGet, fmt.Sprintf("/workflows/%s", id), nil, workflow)
 	return workflow, err
 }
 
+// Update a workflow by it's ID or name.
 func Update(id string, params *cased.WorkflowParams) (*cased.Workflow, error) {
 	return client().Update(id, params)
 }
 
+// Update a workflow by it's ID or name.
 func (c Client) Update(id string, params *cased.WorkflowParams) (*cased.Workflow, error) {
 	workflow := &cased.Workflow{}
 	err := c.Endpoint.Call(http.MethodPatch, fmt.Sprintf("/workflows/%s", id), params, workflow)
 	return workflow, err
 }
 
+// Delete a workflow by it's ID or name.
 func Delete(id string) (*cased.Workflow, error) {
 	return client().Delete(id)
 }
 
+// Delete a workflow by it's ID or name.
 func (c Client) Delete(id string) (*cased.Workflow, error) {
 	workflow := &cased.Workflow{}
 	err := c.Endpoint.Call(http.MethodDelete, fmt.Sprintf("/workflows/%s", id), nil, workflow)
 	return workflow, err
 }
 
-func List(id string) ([]*cased.Workflow, error) {
-	return client().List(id)
+// Delete a workflow by it's ID or name.
+func List() ([]*cased.Workflow, error) {
+	return client().List()
 }
 
-func (c Client) List(id string) ([]*cased.Workflow, error) {
+func (c Client) List() ([]*cased.Workflow, error) {
 	workflows := []*cased.Workflow{}
 	err := c.Endpoint.Call(http.MethodGet, "/workflows", nil, workflows)
 	return workflows, err

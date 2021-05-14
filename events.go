@@ -2,6 +2,7 @@ package cased
 
 import "time"
 
+// EventPayload is the JSON event.
 type EventPayload map[string]interface{}
 
 type Event struct {
@@ -9,22 +10,33 @@ type Event struct {
 	ID string `json:"id"`
 
 	// The API URL for the workflow.
-	ApiURL string `json:"api_url"`
+	APIURL string `json:"api_url"`
 
+	// Result contains information about the workflow run. If a workflow was not
+	// specified or detected, it will be empty.
 	Result Result `json:"result"`
 
-	Event         EventPayload `json:"event"`
+	// Event has been processed.
+	Event EventPayload `json:"event"`
+
+	// OriginalEvent contains the original event published to Cased.
 	OriginalEvent EventPayload `json:"original_event"`
 
-	// UpdatedAt is when the workflow was last updated.
+	// UpdatedAt is when the event was last updated.
 	UpdatedAt time.Time `json:"updated_at"`
 
-	// CreatedAt is when the workflow was created.
+	// CreatedAt is when the event was published.
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// EventParams contains the available fields when publishing events.
 type EventParams struct {
-	Params     `json:"-"`
+	Params `json:"-"`
+
+	// WorkflowID is optional and only required if the workflow is known ahead of
+	// time.
 	WorkflowID *string `json:"-"`
-	Event      EventPayload
+
+	// Event is the event that is published to Cased.
+	Event EventPayload `json:""`
 }

@@ -26,33 +26,68 @@ type Workflow struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// WorkflowParams contains the available fields when creating and updating
+// workflows.
 type WorkflowParams struct {
-	Params     `json:"-"`
-	Name       *string     `json:"name"`
-	Conditions []Condition `json:"conditions"`
-	Controls   Controls    `json:"controls"`
+	Params `json:"-"`
+
+	// Name is optional and only required if you intend to trigger workflows
+	// by publishing events directly to them.
+	Name *string `json:"name"`
+
+	// Conditions specify the conditions the workflow should match when events
+	// are not published directly to a workflow.
+	Conditions []Condition `json:"conditions,omitempty"`
+
+	// Configure the controls necessary for the workflow to reach the fulfilled
+	// state.
+	Controls Controls `json:"controls"`
 }
 
+// ConditionOperator contains all condition operators available for workflows.
 type ConditionOperator string
 
 const (
-	ConditionOperatorEndsWith   = "endsWith"
-	ConditionOperatorEqual      = "eq"
-	ConditionOperatorIncludes   = "in"
-	ConditionOperatorNotEqual   = "not"
-	ConditionOperatorRegex      = "re"
+	// ConditionOperatorEndsWith case-insensitive  matches "world" in
+	// "hello world"
+	ConditionOperatorEndsWith = "endsWith"
+
+	// ConditionOperatorEqual case-insensitive matches "cased" both "cased"
+	// or "Cased"
+	ConditionOperatorEqual = "eq"
+
+	// ConditionOperatorIncludes case-insensitive matches when the value is
+	// included in the specified field for both strings and arrays.
+	ConditionOperatorIncludes = "in"
+
+	// ConditionOperatorNotEqual case-insensitive matches when the field does not
+	// contain the specified value.
+	ConditionOperatorNotEqual = "not"
+
+	// ConditionOperatorRegex matches based on the provided regular expression.
+	// Not currently enabled.
+	ConditionOperatorRegex = "re"
+
+	// ConditionOperatorStartsWith case-insensitive matches "hello" in
+	// "hello world"
 	ConditionOperatorStartsWith = "startsWith"
 )
 
-// Condition is an individual clause in a group of clauses that can be used to
-// match incoming events.
+// Condition is an individual clause in one or more conditions that can be used
+// to match incoming events.
 //
 // All conditions are evaluated ignoring the case of the value.
 type Condition struct {
 	// The path to the field on the event to evaluate this condition for.
-	Field    string            `json:"field"`
-	Value    string            `json:"value"`
+	Field string `json:"field"`
+
+	// Operator specifies the operator use to evaluate the condition. See
+	// `ConditionOperator` for all available operators.
 	Operator ConditionOperator `json:"operator"`
+
+	// Value contains the value to be used to evaluate the condition based on its
+	// configured operator.
+	Value string `json:"value"`
 }
 
 type Controls struct {

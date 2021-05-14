@@ -17,10 +17,12 @@ func client() Client {
 	}
 }
 
+// Publish a new event.
 func New(params *cased.EventParams) (*cased.Event, error) {
 	return client().New(params)
 }
 
+// Publish a new event.
 func (c Client) New(params *cased.EventParams) (*cased.Event, error) {
 	event := &cased.Event{}
 	path := "/workflows/events"
@@ -32,10 +34,12 @@ func (c Client) New(params *cased.EventParams) (*cased.Event, error) {
 	return event, err
 }
 
+// Retrieve an event specified by the event ID.
 func Get(id string) (*cased.Event, error) {
 	return client().Get(id)
 }
 
+// Retrieve an event specified by the event ID.
 func (c Client) Get(id string) (*cased.Event, error) {
 	event := &cased.Event{}
 	err := c.Endpoint.Call(http.MethodGet, fmt.Sprintf("/workflows/events/%s", id), nil, event)
