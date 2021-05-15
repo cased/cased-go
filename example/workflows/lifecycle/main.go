@@ -80,11 +80,11 @@ func main() {
 	}
 	o("New event without workflow", t)
 
-	d, err := workflow.Delete(a.ID)
-	if err != nil {
-		panic(err)
-	}
-	o("Delete workflow", d)
+	// d, err := workflow.Delete(a.ID)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// o("Delete workflow", d)
 }
 
 func o(title string, i interface{}) {
