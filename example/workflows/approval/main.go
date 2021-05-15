@@ -158,7 +158,8 @@ func resolveApproval(w *cased.Workflow, e *cased.Event, approval *cased.ResultCo
 	case cased.ResultControlsApprovalStateDenied,
 		cased.ResultControlsApprovalStateTimedOut,
 		cased.ResultControlsApprovalStateCanceled:
-		panic("Denied!")
+		fmt.Println(approval.State)
+		os.Exit(1)
 	default:
 		panic(fmt.Sprintf("Unhandled approval state: %s", approval.State))
 	}
