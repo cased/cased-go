@@ -25,12 +25,15 @@ func main() {
 		o("Existing workflow", a)
 	} else {
 		a, err = workflow.New(&cased.WorkflowParams{
-			Conditions: []cased.Condition{
+			Conditions: []*cased.WorkflowConditionParams{
 				{
-					Field:    "hello",
-					Operator: cased.ConditionOperatorEqual,
-					Value:    "world",
+					Field:    cased.String("hello"),
+					Operator: cased.String(string(cased.WorkflowConditionOperatorEqual)),
+					Value:    cased.String("world"),
 				},
+			},
+			Controls: &cased.WorkflowControlsParams{
+				Authentication: cased.Bool(true),
 			},
 		})
 
@@ -48,7 +51,8 @@ func main() {
 	o("Get workflow", b)
 
 	c, err := workflow.Update(a.ID, &cased.WorkflowParams{
-		Name: cased.String("named"),
+		Name:       cased.String("named"),
+		Conditions: []*cased.WorkflowConditionParams{},
 	})
 	if err != nil {
 		panic(err)

@@ -1,23 +1,5 @@
 package cased
 
-type ResultState string
-
-const (
-	// Workflow
-	ResultStatePending = "pending"
-
-	// Workflow result state is unfulfilled when all controls have not been met.
-	ResultStateUnfulfilled = "unfulfilled"
-
-	// Workflow controls were not met. When the workflow result state is rejected
-	// it's intended any further progress is canceled.
-	ResultStateFulfilled = "fulfilled"
-
-	// Workflow controls were not met. When the workflow result state is rejected
-	// it's intended any further progress is canceled.
-	ResultStateRejected = "rejected"
-)
-
 type Result struct {
 	// The Result ID
 	ID string `json:"id"`
@@ -26,11 +8,56 @@ type Result struct {
 	ApiURL string `json:"api_url"`
 
 	// State
-	State ResultState `json:"state"`
+	State WorkflowState `json:"state"`
 
 	// Controls
-	Controls Controls `json:"controls"`
+	Controls ResultControls `json:"controls"`
 
 	// Workflow
 	Workflow Workflow `json:"workflow"`
+}
+
+type ResultControls struct {
+	Authentication *ResultControlsAuthentication `json:"authentication,omitempty"`
+	Reason         *ResultControlsReason         `json:"reason,omitempty"`
+	Approval       *ResultControlsApproval       `json:"approval,omitempty"`
+}
+
+type ResultControlsAuthentication struct {
+	State  WorkflowState                     `json:"state"`
+	User   *ResultControlsAuthenticationUser `json:"user"`
+	URL    string                            `json:"url"`
+	ApiURL string                            `json:"api_url"`
+}
+
+type ResultControlsAuthenticationUser struct {
+	ID    string `json:"id"`
+	Email string `json:"email"`
+}
+
+type ResultControlsReason struct {
+	State WorkflowState `json:"state"`
+}
+
+type ResultControlsApproval struct {
+	State    WorkflowState                   `json:"state"`
+	Requests []ResultControlsApprovalRequest `json:"requests"`
+	Source   ResultControlsApprovalSource    `json:"source"`
+}
+
+type ResultControlsApprovalRequestType string
+
+type ResultControlsApprovalRequest struct {
+	ID    string                            `json:"id"`
+	State WorkflowState                     `json:"state"`
+	Type  ResultControlsApprovalRequestType `json:"type"`
+}
+
+type ResultControlsApprovalSource struct {
+	Email bool                              `json:"email"`
+	Slack ResultControlsApprovalSourceSlack `json:"slack"`
+}
+
+type ResultControlsApprovalSourceSlack struct {
+	Channel string `json:"channel"`
 }

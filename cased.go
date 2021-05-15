@@ -222,8 +222,13 @@ func (p *Params) GetParams() *Params {
 	return p
 }
 
+// Built in type pointer helpers
 func String(v string) *string {
 	return &v
+}
+
+func Bool(b bool) *bool {
+	return &b
 }
 
 // Publisher describes the interface for structs that want to publish audit
