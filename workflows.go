@@ -30,18 +30,18 @@ type WorkflowState string
 
 const (
 	// Workflow
-	WorkflowStatePending = "pending"
+	WorkflowStatePending WorkflowState = "pending"
 
 	// Workflow result state is unfulfilled when all controls have not been met.
-	WorkflowStateUnfulfilled = "unfulfilled"
+	WorkflowStateUnfulfilled WorkflowState = "unfulfilled"
 
 	// Workflow controls were not met. When the workflow result state is rejected
 	// it's intended any further progress is canceled.
-	WorkflowStateFulfilled = "fulfilled"
+	WorkflowStateFulfilled WorkflowState = "fulfilled"
 
 	// Workflow controls were not met. When the workflow result state is rejected
 	// it's intended any further progress is canceled.
-	WorkflowStateRejected = "rejected"
+	WorkflowStateRejected WorkflowState = "rejected"
 )
 
 // WorkflowParams contains the available fields when creating and updating
@@ -140,10 +140,10 @@ type WorkflowControls struct {
 
 type WorkflowControlsParams struct {
 	// Require a user to provide a reason to continue the workflow.
-	Reason *bool `json:"reason"`
+	Reason *bool `json:"reason,omitempty"`
 
 	// Require a user to authenticate with Cased to continue the workflow.
-	Authentication *bool `json:"authentication"`
+	Authentication *bool `json:"authentication,omitempty"`
 
 	// Require a user to receive approval before a workflow is fulfilled or
 	// rejected.
@@ -183,19 +183,19 @@ type WorkflowControlsApprovalParams struct {
 	//
 	// Approval count cannot exceed the number of users on your account,
 	// otherwise an error will be returned.
-	Count *int `json:"count"`
+	Count *int `json:"count,omitempty"`
 
 	// Permit an approval request to allow user requesting approval the ability
 	// to approve their own request. If the Authentication control is disabled,
 	// any user can approve the request and this setting is ignored.
-	SelfApproval *bool `json:"self_approval"`
+	SelfApproval *bool `json:"self_approval,omitempty"`
 
 	// Determine how long the approval lasts for.
-	Duration *int `json:"duration"`
+	Duration *int `json:"duration,omitempty"`
 
 	// Control how long the approval request is valid for. If not supplied,
 	// approval requests can be responded to indefinitely.
-	Timeout *int `json:"timeout"`
+	Timeout *int `json:"timeout,omitempty"`
 
 	// List of responders that can include individual users and groups of users
 	// who are authorized to respond to the approval request.

@@ -203,11 +203,24 @@ func (ei *EndpointImplementation) Call(method, path string, params ParamsContain
 	}
 	defer resp.Body.Close()
 
+	// After a resource is successfully deleted an error or decoding of the
+	// response is not necessary
 	if method == http.MethodDelete && resp.StatusCode == http.StatusOK {
 		return nil
+	} else if resp.StatusCode >= 400 {
+		return ei.LookupError(resp)
 	}
 
 	return json.NewDecoder(resp.Body).Decode(i)
+}
+
+func (ei *EndpointImplementation) LookupError(resp *http.Response) error {
+	apiError := &Error{}
+	if err := json.NewDecoder(resp.Body).Decode(apiError); err != nil {
+		return err
+	}
+
+	return apiError
 }
 
 type ParamsContainer interface {
@@ -215,7 +228,7 @@ type ParamsContainer interface {
 }
 
 type Params struct {
-	Context context.Context `form:"-"`
+	Context context.Context `json:"-"`
 }
 
 func (p *Params) GetParams() *Params {
@@ -223,12 +236,16 @@ func (p *Params) GetParams() *Params {
 }
 
 // Built in type pointer helpers
-func String(v string) *string {
-	return &v
+func String(s string) *string {
+	return &s
 }
 
 func Bool(b bool) *bool {
 	return &b
+}
+
+func Int(i int) *int {
+	return &i
 }
 
 // Publisher describes the interface for structs that want to publish audit

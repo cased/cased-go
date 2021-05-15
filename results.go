@@ -39,8 +39,19 @@ type ResultControlsReason struct {
 	State WorkflowState `json:"state"`
 }
 
+type ResultControlsApprovalState string
+
+const (
+	ResultControlsApprovalStatePending   ResultControlsApprovalState = "pending"
+	ResultControlsApprovalStateRequested ResultControlsApprovalState = "requested"
+	ResultControlsApprovalStateApproved  ResultControlsApprovalState = "approved"
+	ResultControlsApprovalStateDenied    ResultControlsApprovalState = "denied"
+	ResultControlsApprovalStateTimedOut  ResultControlsApprovalState = "timed_out"
+	ResultControlsApprovalStateCanceled  ResultControlsApprovalState = "canceled"
+)
+
 type ResultControlsApproval struct {
-	State    WorkflowState                   `json:"state"`
+	State    ResultControlsApprovalState     `json:"state"`
 	Requests []ResultControlsApprovalRequest `json:"requests"`
 	Source   ResultControlsApprovalSource    `json:"source"`
 }

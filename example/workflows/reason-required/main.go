@@ -14,7 +14,7 @@ const WorkflowName = "reason-required"
 
 func main() {
 	// Fetch the reason required workflow
-	w := reasonRequiredWorkflow()
+	w := fetchWorkflow()
 
 	// If the user supplied a reason when invoking the program, pass it to the event
 	var reason string
@@ -25,7 +25,7 @@ func main() {
 	triggerWorkflow(w, reason)
 }
 
-func reasonRequiredWorkflow() *cased.Workflow {
+func fetchWorkflow() *cased.Workflow {
 	var w *cased.Workflow
 
 	existing, err := workflow.Get(WorkflowName)
