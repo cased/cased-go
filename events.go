@@ -1,6 +1,9 @@
 package cased
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 // EventPayload is the JSON event.
 type EventPayload map[string]interface{}
@@ -31,12 +34,16 @@ type Event struct {
 
 // EventParams contains the available fields when publishing events.
 type EventParams struct {
-	Params `json:"-"`
+	Params
 
 	// WorkflowID is optional and only required if the workflow is known ahead of
 	// time.
-	WorkflowID *string `json:"-"`
+	WorkflowID *string
 
 	// Event is the event that is published to Cased.
-	Event EventPayload `json:""`
+	Event EventPayload
+}
+
+func (ep EventParams) MarshalJSON() ([]byte, error) {
+	return json.Marshal(ep.Event)
 }
