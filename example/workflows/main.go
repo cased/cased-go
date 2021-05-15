@@ -11,27 +11,41 @@ import (
 )
 
 func main() {
-	a, err := workflow.New(&cased.WorkflowParams{
-		Conditions: []cased.Condition{
-			{
-				Field:    "hello",
-				Operator: cased.ConditionOperatorEqual,
-				Value:    "world",
-			},
-		},
-	})
+	var a *cased.Workflow
 
+	existing, err := workflow.Get("named")
 	if err != nil {
 		panic(err)
 	}
-	o(a)
-	fmt.Printf("%+v\n", a)
+
+	if existing.ID != "" {
+		fmt.Println("Using existing")
+		a = existing
+
+		o("Existing workflow", a)
+	} else {
+		a, err = workflow.New(&cased.WorkflowParams{
+			Conditions: []cased.Condition{
+				{
+					Field:    "hello",
+					Operator: cased.ConditionOperatorEqual,
+					Value:    "world",
+				},
+			},
+		})
+
+		if err != nil {
+			panic(err)
+		}
+
+		o("Create workflow", a)
+	}
 
 	b, err := workflow.Get(a.ID)
 	if err != nil {
 		panic(err)
 	}
-	o(b)
+	o("Get workflow", b)
 
 	c, err := workflow.Update(a.ID, &cased.WorkflowParams{
 		Name: cased.String("named"),
@@ -39,7 +53,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	o(c)
+	o("Update workflow", c)
 
 	e, err := event.New(&cased.EventParams{
 		Event: cased.EventPayload{
@@ -50,7 +64,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	o(e)
+	o("New event with workflow", e)
 
 	t, err := event.New(&cased.EventParams{
 		Event: cased.EventPayload{
@@ -60,19 +74,22 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	o(t)
+	o("New event without workflow", t)
 
 	d, err := workflow.Delete(a.ID)
 	if err != nil {
 		panic(err)
 	}
-	o(d)
+	o("Delete workflow", d)
 }
 
-func o(i interface{}) {
+func o(title string, i interface{}) {
 	empJSON, err := json.MarshalIndent(i, "", " ")
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
+	fmt.Println("===============================================")
+	fmt.Println(title)
+	fmt.Println("===============================================")
 	fmt.Println(string(empJSON))
 }
