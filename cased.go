@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+type AvailableEndpoint string
+
 const (
 	APIEndpoint         AvailableEndpoint = "api"
 	WorkflowsEndpoint   AvailableEndpoint = "workflows"
@@ -22,15 +24,24 @@ const (
 )
 
 var (
-	APIURL       = os.Getenv("CASED_API_URL")
-	APIKey       = os.Getenv("CASED_API_KEY")
-	PublishURL   = os.Getenv("CASED_PUBLISH_URL")
-	PublishKey   = os.Getenv("CASED_PUBLISH_KEY")
+	// APIURL is the Cased REST API URL (default: https://api.cased.com)
+	APIURL = os.Getenv("CASED_API_URL")
+	APIKey = os.Getenv("CASED_API_KEY")
+
+	// PublishURL is the Cased API URL for publishing audit trail events
+	// (default: https://publish.cased.com)
+	PublishURL = os.Getenv("CASED_PUBLISH_URL")
+
+	// PublishKey is the audit trail API key for publishing audit trail events.
+	PublishKey = os.Getenv("CASED_PUBLISH_KEY")
+
+	// WorkflowsKey is the workflows API key for managing and triggering workflows.
 	WorkflowsKey = os.Getenv("CASED_WORKFLOWS_KEY")
 )
 
 var endpoints Endpoints
 
+// Default HTTP client that can be customized by using `SetHTTPClient`.
 var httpClient = &http.Client{
 	Timeout: 30 * time.Second,
 }
@@ -52,6 +63,8 @@ type Endpoint interface {
 	Call(method, path string, params ParamsContainer, i interface{}) error
 }
 
+// SetEndpoint lets you configure the endpoint implementation for a particular
+// endpoint. Helpful for mocking in tests.
 func SetEndpoint(endpoint AvailableEndpoint, e Endpoint) {
 	endpoints.mu.Lock()
 	defer endpoints.mu.Unlock()
@@ -66,6 +79,7 @@ func SetEndpoint(endpoint AvailableEndpoint, e Endpoint) {
 	}
 }
 
+// GetEndpoint retrieves an endpoint implementation for a particular endpoint.
 func GetEndpoint(endpointType AvailableEndpoint) Endpoint {
 	var endpoint Endpoint
 
@@ -97,6 +111,8 @@ func GetEndpoint(endpointType AvailableEndpoint) Endpoint {
 	return endpoint
 }
 
+// GetEndpointWithConfig configures the specified endpoint type with the default
+// configuration.
 func GetEndpointWithConfig(endpointType AvailableEndpoint, config *EndpointConfig) Endpoint {
 	if config.HTTPClient == nil {
 		config.HTTPClient = httpClient
@@ -111,6 +127,9 @@ func GetEndpointWithConfig(endpointType AvailableEndpoint, config *EndpointConfi
 				config.URL = String(APIURL)
 			}
 		}
+		// Prevents double forward slash when constructing API URLs if
+		// https://api.cased.com/ is provided as the base URL compared to
+		// https://api.cased.com
 		config.URL = String(strings.TrimSuffix(*config.URL, "/"))
 
 		if config.APIKey == nil {
@@ -153,9 +172,6 @@ func GetEndpointWithConfig(endpointType AvailableEndpoint, config *EndpointConfi
 	return nil
 }
 
-type APIResource interface {
-}
-
 type EndpointConfig struct {
 	HTTPClient *http.Client
 	APIKey     *string
@@ -170,8 +186,6 @@ func newEndpointImplementation(endpointType AvailableEndpoint, config *EndpointC
 		APIKey:     *config.APIKey,
 	}
 }
-
-type AvailableEndpoint string
 
 type EndpointImplementation struct {
 	Endpoint   AvailableEndpoint
@@ -208,13 +222,13 @@ func (ei *EndpointImplementation) Call(method, path string, params ParamsContain
 	if method == http.MethodDelete && resp.StatusCode == http.StatusOK {
 		return nil
 	} else if resp.StatusCode >= 400 {
-		return ei.LookupError(resp)
+		return decodeErrorResponse(resp)
 	}
 
 	return json.NewDecoder(resp.Body).Decode(i)
 }
 
-func (ei *EndpointImplementation) LookupError(resp *http.Response) error {
+func decodeErrorResponse(resp *http.Response) error {
 	apiError := &Error{}
 	if err := json.NewDecoder(resp.Body).Decode(apiError); err != nil {
 		return err
