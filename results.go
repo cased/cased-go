@@ -1,5 +1,7 @@
 package cased
 
+import "time"
+
 type Result struct {
 	// The Result ID
 	ID string `json:"id"`
@@ -16,6 +18,12 @@ type Result struct {
 	// Workflow contains the workflow that was detected or specified with the
 	// event.
 	Workflow *Workflow `json:"workflow"`
+
+	// UpdatedAt is when the result was last updated.
+	UpdatedAt time.Time `json:"updated_at"`
+
+	// CreatedAt is when the result was originally created.
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // ResultControls contains all the controls specified by the workflow that was

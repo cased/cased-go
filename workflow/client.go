@@ -64,14 +64,3 @@ func (c Client) Delete(id string) (*cased.Workflow, error) {
 	err := c.Endpoint.Call(http.MethodDelete, fmt.Sprintf("/workflows/%s", id), nil, workflow)
 	return workflow, err
 }
-
-// Delete a workflow by it's ID or name.
-func List() ([]*cased.Workflow, error) {
-	return client().List()
-}
-
-func (c Client) List() ([]*cased.Workflow, error) {
-	workflows := []*cased.Workflow{}
-	err := c.Endpoint.Call(http.MethodGet, "/workflows", nil, workflows)
-	return workflows, err
-}
