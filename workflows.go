@@ -10,7 +10,7 @@ type Workflow struct {
 	Name *string `json:"name,omitempty"`
 
 	// The API URL for the workflow.
-	ApiURL string `json:"api_url"`
+	APIURL string `json:"api_url"`
 
 	// Conditions are how Cased determines which workflow should run when an event
 	// is published and a workflow is not specified.

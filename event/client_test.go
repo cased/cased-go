@@ -14,7 +14,7 @@ var mockedEvent = cased.Event{
 	APIURL: "https://api.cased.com/workflows/events/event_1sY67fxGiiHp4f7dlcY26pL4eY5",
 	Result: cased.Result{
 		ID:        "result_1sY67fxGiiHp4f7dlcY26pL4eY5",
-		ApiURL:    "https://api.cased.com/workflows/events/event_1sY67fxGiiHp4f7dlcY26pL4eY5/result",
+		APIURL:    "https://api.cased.com/workflows/events/event_1sY67fxGiiHp4f7dlcY26pL4eY5/result",
 		State:     cased.WorkflowStateFulfilled,
 		Controls:  cased.ResultControls{},
 		Workflow:  nil,

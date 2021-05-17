@@ -7,7 +7,7 @@ type Result struct {
 	ID string `json:"id"`
 
 	// The API URL for the result.
-	ApiURL string `json:"api_url"`
+	APIURL string `json:"api_url"`
 
 	// State contains the workflow run state.
 	State WorkflowState `json:"state"`
@@ -50,7 +50,7 @@ type ResultControlsAuthentication struct {
 	URL string `json:"url"`
 
 	// ApiURL contains the URL to check the status of the authentication request.
-	ApiURL string `json:"api_url"`
+	APIURL string `json:"api_url"`
 }
 
 type ResultControlsAuthenticationUser struct {

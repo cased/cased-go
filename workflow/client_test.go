@@ -12,7 +12,7 @@ import (
 var mockedWorkflow = cased.Workflow{
 	ID:        "workflow_1sY67fxGiiHp4f7dlcY26pL4eY5",
 	Name:      cased.String("workflow"),
-	ApiURL:    "https://api.cased.com/workflows/workflow_1sY67fxGiiHp4f7dlcY26pL4eY5",
+	APIURL:    "https://api.cased.com/workflows/workflow_1sY67fxGiiHp4f7dlcY26pL4eY5",
 	UpdatedAt: time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
 	CreatedAt: time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
 }
@@ -48,7 +48,7 @@ func TestWorkflow_New(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, "workflow_1sY67fxGiiHp4f7dlcY26pL4eY5", w.ID)
-	assert.Equal(t, "https://api.cased.com/workflows/workflow_1sY67fxGiiHp4f7dlcY26pL4eY5", w.ApiURL)
+	assert.Equal(t, "https://api.cased.com/workflows/workflow_1sY67fxGiiHp4f7dlcY26pL4eY5", w.APIURL)
 	assert.Equal(t, "workflow", *w.Name)
 	assert.Empty(t, w.Conditions)
 	assert.Empty(t, w.Controls)
@@ -67,7 +67,7 @@ func TestWorkflow_Get(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, "workflow_1sY67fxGiiHp4f7dlcY26pL4eY5", w.ID)
-	assert.Equal(t, "https://api.cased.com/workflows/workflow_1sY67fxGiiHp4f7dlcY26pL4eY5", w.ApiURL)
+	assert.Equal(t, "https://api.cased.com/workflows/workflow_1sY67fxGiiHp4f7dlcY26pL4eY5", w.APIURL)
 	assert.Equal(t, "workflow", *w.Name)
 	assert.Empty(t, w.Conditions)
 	assert.Empty(t, w.Controls)
@@ -86,7 +86,7 @@ func TestWorkflow_Update(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, "workflow_1sY67fxGiiHp4f7dlcY26pL4eY5", w.ID)
-	assert.Equal(t, "https://api.cased.com/workflows/workflow_1sY67fxGiiHp4f7dlcY26pL4eY5", w.ApiURL)
+	assert.Equal(t, "https://api.cased.com/workflows/workflow_1sY67fxGiiHp4f7dlcY26pL4eY5", w.APIURL)
 	assert.Equal(t, "workflow", *w.Name)
 	assert.Empty(t, w.Conditions)
 	assert.Empty(t, w.Controls)
