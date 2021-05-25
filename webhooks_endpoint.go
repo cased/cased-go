@@ -6,9 +6,14 @@ type WebhooksEndpoint struct {
 	// The Webhook Endpoint ID
 	ID string `json:"id"`
 
-	URL        string   `json:"url"`
-	APIURL     string   `json:"api_url"`
-	Secret     string   `json:"secret"`
+	// The API URL for the webhook endpoint.
+	APIURL string `json:"api_url"`
+
+	// Secret used to sign payloads.
+	Secret string `json:"secret"`
+
+	// EventTypes to deliver to the webhook endpoint. If none are specified, all
+	// event types will deliver events.
 	EventTypes []string `json:"event_types"`
 
 	// UpdatedAt is when the workflow was last updated.
@@ -21,8 +26,10 @@ type WebhooksEndpoint struct {
 type WebhooksEndpointParams struct {
 	Params `json:"-"`
 
-	// Name is optional and only required if you intend to trigger workflows
-	// by publishing events directly to them.
-	URL        *string   `json:"url,omitempty"`
+	// URL to deliver webhook events to.
+	URL *string `json:"url,omitempty"`
+
+	// EventTypes to deliver to the webhook endpoint. If none are specified, all
+	// event types will deliver events.
 	EventTypes []*string `json:"event_types,omitempty"`
 }
