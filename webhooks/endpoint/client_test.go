@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var mockedWorkflowsEndpoint = cased.WebhooksEndpoint{
+var mockedWebhooksEndpoint = cased.WebhooksEndpoint{
 	ID:        "webhooks_endpoint_1sY67fxGiiHp4f7dlcY26pL4eY5",
 	URL:       "https://app.cased.com",
 	APIURL:    "https://api.cased.com/webhooks/endpoints/webhooks_endpoint_1sY67fxGiiHp4f7dlcY26pL4eY5",
@@ -19,7 +19,7 @@ var mockedWorkflowsEndpoint = cased.WebhooksEndpoint{
 
 var mockedEndpoint = &MockEndpoint{
 	CallFunc: func(method, path string, params cased.ParamsContainer, i interface{}) error {
-		data, err := json.Marshal(mockedWorkflowsEndpoint)
+		data, err := json.Marshal(mockedWebhooksEndpoint)
 		if err != nil {
 			return err
 		}
@@ -35,7 +35,7 @@ func (me *MockEndpoint) Call(method, path string, params cased.ParamsContainer, 
 	return me.CallFunc(method, path, params, i)
 }
 
-func TestWorkflow_New(t *testing.T) {
+func TestWebhooksEndpoint_New(t *testing.T) {
 	e := cased.GetEndpoint(cased.WorkflowsEndpoint)
 	cased.SetEndpoint(cased.WorkflowsEndpoint, mockedEndpoint)
 	defer func(e cased.Endpoint) {
@@ -43,7 +43,7 @@ func TestWorkflow_New(t *testing.T) {
 	}(e)
 
 	we, err := New(&cased.WebhooksEndpointParams{
-		URL: cased.String("workflow"),
+		URL: cased.String("https://app.cased.com"),
 	})
 
 	assert.NoError(t, err)
@@ -54,14 +54,14 @@ func TestWorkflow_New(t *testing.T) {
 	assert.Equal(t, "2021-01-01T00:00:00Z", we.CreatedAt.Format(time.RFC3339Nano))
 }
 
-func TestWorkflow_Get(t *testing.T) {
+func TestWebhooksEndpoint_Get(t *testing.T) {
 	e := cased.GetEndpoint(cased.WorkflowsEndpoint)
 	cased.SetEndpoint(cased.WorkflowsEndpoint, mockedEndpoint)
 	defer func(e cased.Endpoint) {
 		cased.SetEndpoint(cased.WorkflowsEndpoint, e)
 	}(e)
 
-	we, err := Get("workflow_id")
+	we, err := Get("webhooks_endpoint_id")
 
 	assert.NoError(t, err)
 	assert.Equal(t, "webhooks_endpoint_1sY67fxGiiHp4f7dlcY26pL4eY5", we.ID)
@@ -71,14 +71,14 @@ func TestWorkflow_Get(t *testing.T) {
 	assert.Equal(t, "2021-01-01T00:00:00Z", we.CreatedAt.Format(time.RFC3339Nano))
 }
 
-func TestWorkflow_Update(t *testing.T) {
+func TestWebhooksEndpoint_Update(t *testing.T) {
 	e := cased.GetEndpoint(cased.WorkflowsEndpoint)
 	cased.SetEndpoint(cased.WorkflowsEndpoint, mockedEndpoint)
 	defer func(e cased.Endpoint) {
 		cased.SetEndpoint(cased.WorkflowsEndpoint, e)
 	}(e)
 
-	we, err := Update("workflow_id", &cased.WebhooksEndpointParams{})
+	we, err := Update("webhooks_endpoint_id", &cased.WebhooksEndpointParams{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, "webhooks_endpoint_1sY67fxGiiHp4f7dlcY26pL4eY5", we.ID)
@@ -88,13 +88,13 @@ func TestWorkflow_Update(t *testing.T) {
 	assert.Equal(t, "2021-01-01T00:00:00Z", we.CreatedAt.Format(time.RFC3339Nano))
 }
 
-func TestWorkflow_Delete(t *testing.T) {
+func TestWebhooksEndpoint_Delete(t *testing.T) {
 	e := cased.GetEndpoint(cased.WorkflowsEndpoint)
 	cased.SetEndpoint(cased.WorkflowsEndpoint, mockedEndpoint)
 	defer func(e cased.Endpoint) {
 		cased.SetEndpoint(cased.WorkflowsEndpoint, e)
 	}(e)
 
-	_, err := Delete("workflow_id")
+	_, err := Delete("webhooks_endpoint_id")
 	assert.NoError(t, err)
 }
