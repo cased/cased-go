@@ -2,7 +2,7 @@ package cased
 
 import "time"
 
-type WebhookEndpoint struct {
+type WebhooksEndpoint struct {
 	// The Webhook Endpoint ID
 	ID string `json:"id"`
 
@@ -18,7 +18,7 @@ type WebhookEndpoint struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type WebhookEndpointParams struct {
+type WebhooksEndpointParams struct {
 	Params `json:"-"`
 
 	// Name is optional and only required if you intend to trigger workflows
