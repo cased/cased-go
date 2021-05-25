@@ -6,6 +6,9 @@ type WebhooksEndpoint struct {
 	// The Webhook Endpoint ID
 	ID string `json:"id"`
 
+	// URL to deliver webhook events to.
+	URL string `json:"url"`
+
 	// The API URL for the webhook endpoint.
 	APIURL string `json:"api_url"`
 
