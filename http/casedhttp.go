@@ -76,12 +76,12 @@ func VerifyWebhookSignature(req *http.Request, params *VerifyWebhookSignaturePar
 	if _, err = mac.Write([]byte(basestring)); err != nil {
 		return err
 	}
-	sha := hex.EncodeToString(mac.Sum(nil))
+	computed := hex.EncodeToString(mac.Sum(nil))
 
 	req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
 	// Compare the computed signature with signature sent with webhook
-	if signature != sha {
+	if signature != computed {
 		return WebhookSignatureVerificationError
 	}
 
