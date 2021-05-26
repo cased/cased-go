@@ -3,7 +3,9 @@ package casedhttp
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/cased/cased-go"
 	"github.com/stretchr/testify/assert"
@@ -79,4 +81,49 @@ func TestContextMiddlewareUsesXForwardedForIfPresent(t *testing.T) {
 	handlerToTest := ContextMiddleware(handler)
 
 	handlerToTest.ServeHTTP(httptest.NewRecorder(), req)
+}
+
+func TestVerifyWebhookSignatureMiddleware(t *testing.T) {
+	body := strings.NewReader(`{}`)
+	req, err := http.NewRequest("POST", "/webhook", body)
+	req.Header.Add(WebhookTimestampHeader, "1622047545") // some fixed time in the past
+	req.Header.Add(WebhookSignatureHeader, "f6becf406ecc9d45d6c09b7994204156401ec4c39027e06d1954e0b854987b3c")
+	assert.NoError(t, err)
+	reached := false
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		reached = true
+	})
+
+	params := &VerifyWebhookSignatureParams{
+		Secret: cased.String("webhook_secret_1t57jFvmVYju00z8F4fFB8veweg"),
+	}
+	handlerToTest := VerifyWebhookSignatureMiddleware(handler, params)
+
+	handlerToTest.ServeHTTP(httptest.NewRecorder(), req)
+
+	assert.True(t, reached)
+}
+
+func TestVerifyWebhookSignatureMiddleware_ReplayAttack(t *testing.T) {
+	body := strings.NewReader(`{}`)
+	req, err := http.NewRequest("POST", "/webhook", body)
+	req.Header.Add(WebhookTimestampHeader, "1622047000")
+	req.Header.Add(WebhookSignatureHeader, "f6becf406ecc9d45d6c09b7994204156401ec4c39027e06d1954e0b854987b3c")
+	assert.NoError(t, err)
+	reached := false
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		reached = true
+	})
+
+	params := &VerifyWebhookSignatureParams{
+		Secret:           cased.String("webhook_secret_1t57jFvmVYju00z8F4fFB8veweg"),
+		TimestampExpires: time.Minute * 5,
+	}
+	handlerToTest := VerifyWebhookSignatureMiddleware(handler, params)
+
+	handlerToTest.ServeHTTP(httptest.NewRecorder(), req)
+
+	assert.False(t, reached, "expected error to be returned")
 }
