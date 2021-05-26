@@ -19,10 +19,10 @@ type WebhooksEndpoint struct {
 	// event types will deliver events.
 	EventTypes []string `json:"event_types"`
 
-	// UpdatedAt is when the workflow was last updated.
+	// UpdatedAt is when the webhook endpoint was last updated.
 	UpdatedAt time.Time `json:"updated_at"`
 
-	// CreatedAt is when the workflow was created.
+	// CreatedAt is when the webhook endpoint was created.
 	CreatedAt time.Time `json:"created_at"`
 }
 
