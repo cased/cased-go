@@ -10,8 +10,8 @@ import (
 func main() {
 	we, err := endpoint.New(&cased.WebhooksEndpointParams{
 		URL: cased.String("https://cased.com"),
-		EventTypes: []*string{
-			cased.String("event.created"),
+		EventTypes: &[]string{
+			"event.created",
 		},
 	})
 

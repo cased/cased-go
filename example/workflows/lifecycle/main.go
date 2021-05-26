@@ -25,7 +25,7 @@ func main() {
 		o("Existing workflow", a)
 	} else {
 		a, err = workflow.New(&cased.WorkflowParams{
-			Conditions: []*cased.WorkflowConditionParams{
+			Conditions: &[]cased.WorkflowConditionParams{
 				{
 					Field:    cased.String("hello"),
 					Operator: cased.String(string(cased.WorkflowConditionOperatorEqual)),
@@ -52,7 +52,7 @@ func main() {
 
 	c, err := workflow.Update(a.ID, &cased.WorkflowParams{
 		Name:       cased.String("named"),
-		Conditions: []*cased.WorkflowConditionParams{},
+		Conditions: &[]cased.WorkflowConditionParams{},
 	})
 	if err != nil {
 		panic(err)
