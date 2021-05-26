@@ -34,5 +34,5 @@ type WebhooksEndpointParams struct {
 
 	// EventTypes to deliver to the webhook endpoint. If none are specified, all
 	// event types will deliver events.
-	EventTypes []*string `json:"event_types,omitempty"`
+	EventTypes []*string `json:"event_types"`
 }
