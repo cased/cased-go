@@ -20,10 +20,13 @@ func main() {
 	})
 	mux.Handle("/login", casedhttp.ContextMiddleware(loginHandler))
 
+	// Setup webhook for Cased
 	webhookHandler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		w.Write([]byte("Webhook!")) // nolint:errcheck
 	})
 	webhookVerificationParams := &casedhttp.VerifyWebhookSignatureParams{
+		// Secret can be omitted if the CASED_WEBHOOK_SECRET environment variable is set.
+		Secret: cased.String("webhooks_secret_1t2WblwTxlBsYhnHI4Sm6DF2yt2"),
 		TimestampExpires: 5 * time.Minute,
 	}
 	mux.Handle("/webhook", casedhttp.VerifyWebhookSignatureMiddleware(webhookHandler, webhookVerificationParams))
