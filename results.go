@@ -104,7 +104,7 @@ type ResultControlsApproval struct {
 	State ResultControlsApprovalState `json:"state"`
 
 	// URL where user can approve the request in the UI.
-	URL string `json:"url"`
+	URL *string `json:"url"`
 
 	// Requests contains all approval requests sent. Feature is not yet enabled.
 	Requests []ResultControlsApprovalRequest `json:"requests"`
