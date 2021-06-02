@@ -4,23 +4,25 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
+	"sync"
 
 	"github.com/cased/cased-go"
 	"github.com/cased/cased-go/event"
 	"github.com/cased/cased-go/workflow"
+	"github.com/cased/cased-go/workflow/controlstates/approval"
 )
 
 const WorkflowName = "provision-database"
 
-var (
-	promptedForAuthentication = false
-	promptedForApproval       = false
-)
-
 type task struct {
-	workflow *cased.Workflow
-	event    *cased.Event
+	workflow                  *cased.Workflow
+	event                     *cased.Event
+	c                         chan os.Signal
+	promptedForApproval       bool
+	promptedForAuthentication bool
+	once                      sync.Once
 }
 
 func main() {
@@ -67,8 +69,7 @@ func createWorkflow() (*cased.Workflow, error) {
 	w, err := workflow.New(&cased.WorkflowParams{
 		Name: cased.String(WorkflowName),
 		Controls: &cased.WorkflowControlsParams{
-			Authentication: cased.Bool(true),
-			Reason:         cased.Bool(true),
+			Reason: cased.Bool(true),
 			Approval: &cased.WorkflowControlsApprovalParams{
 				Count:        cased.Int(1),
 				SelfApproval: cased.Bool(true),
@@ -102,8 +103,11 @@ func triggerWorkflow(w *cased.Workflow, reason string) {
 	fmt.Printf("Created event %s\n", e.ID)
 
 	task := &task{
-		workflow: w,
-		event:    e,
+		workflow:                  w,
+		event:                     e,
+		c:                         make(chan os.Signal, 1),
+		promptedForApproval:       false,
+		promptedForAuthentication: false,
 	}
 
 	task.resolve()
@@ -151,9 +155,9 @@ func (t *task) resolve() {
 // Prompt the user to authenticate with Cased per the configured workflow
 // controls.
 func (t *task) authenticationPrompt(authentication *cased.ResultControlsAuthentication) {
-	if !promptedForAuthentication {
+	if !t.promptedForAuthentication {
 		fmt.Printf("To login, please visit:\n%s\n", authentication.URL)
-		promptedForAuthentication = true
+		t.promptedForAuthentication = true
 	}
 
 	t.refresh()
@@ -172,15 +176,30 @@ func (t *task) reasonPrompt() {
 	triggerWorkflow(t.workflow, strings.TrimSpace(input))
 }
 
+func (t *task) notifyInterrupt(approvalID string) func() {
+	return func() {
+		signal.Notify(t.c, os.Interrupt)
+
+		go func() {
+			select {
+			case <-t.c:
+				approval.Cancel(approvalID)
+			}
+		}()
+	}
+}
+
 // Handle each approval state
-func (t *task) resolveApproval(approval *cased.ResultControlsApproval) {
-	switch approval.State {
+func (t *task) resolveApproval(a *cased.ResultControlsApproval) {
+	t.once.Do(t.notifyInterrupt(a.ID))
+
+	switch a.State {
 	case cased.ResultControlsApprovalStatePending:
 		t.refresh()
 	case cased.ResultControlsApprovalStateRequested:
-		if !promptedForApproval {
+		if !t.promptedForApproval {
 			fmt.Println("Waiting for approval…")
-			promptedForApproval = true
+			t.promptedForApproval = true
 		}
 
 		t.refresh()
@@ -195,9 +214,9 @@ func (t *task) resolveApproval(approval *cased.ResultControlsApproval) {
 	case cased.ResultControlsApprovalStateDenied,
 		cased.ResultControlsApprovalStateTimedOut,
 		cased.ResultControlsApprovalStateCanceled:
-		fmt.Println(approval.State)
+		fmt.Println(a.State)
 		os.Exit(1)
 	default:
-		panic(fmt.Sprintf("Unhandled approval state: %s", approval.State))
+		panic(fmt.Sprintf("Unhandled approval state: %s", a.State))
 	}
 }
