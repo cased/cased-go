@@ -69,7 +69,8 @@ func createWorkflow() (*cased.Workflow, error) {
 	w, err := workflow.New(&cased.WorkflowParams{
 		Name: cased.String(WorkflowName),
 		Controls: &cased.WorkflowControlsParams{
-			Reason: cased.Bool(true),
+			Reason:         cased.Bool(true),
+			Authentication: cased.Bool(true),
 			Approval: &cased.WorkflowControlsApprovalParams{
 				Count:        cased.Int(1),
 				SelfApproval: cased.Bool(true),
@@ -181,10 +182,8 @@ func (t *task) notifyInterrupt(approvalID string) func() {
 		signal.Notify(t.c, os.Interrupt)
 
 		go func() {
-			select {
-			case <-t.c:
-				approval.Cancel(approvalID)
-			}
+			<-t.c
+			approval.Cancel(approvalID) //nolint:errcheck
 		}()
 	}
 }
