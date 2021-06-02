@@ -4,19 +4,26 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
+	"sync"
 
 	"github.com/cased/cased-go"
 	"github.com/cased/cased-go/event"
 	"github.com/cased/cased-go/workflow"
+	"github.com/cased/cased-go/workflow/controlstates/approval"
 )
 
 const WorkflowName = "provision-database"
 
-var (
-	promptedForAuthentication = false
-	promptedForApproval       = false
-)
+type task struct {
+	workflow                  *cased.Workflow
+	event                     *cased.Event
+	c                         chan os.Signal
+	promptedForApproval       bool
+	promptedForAuthentication bool
+	once                      sync.Once
+}
 
 func main() {
 	// Fetch the reason required workflow
@@ -62,14 +69,14 @@ func createWorkflow() (*cased.Workflow, error) {
 	w, err := workflow.New(&cased.WorkflowParams{
 		Name: cased.String(WorkflowName),
 		Controls: &cased.WorkflowControlsParams{
-			Authentication: cased.Bool(true),
 			Reason:         cased.Bool(true),
+			Authentication: cased.Bool(true),
 			Approval: &cased.WorkflowControlsApprovalParams{
 				Count:        cased.Int(1),
 				SelfApproval: cased.Bool(true),
 				Sources: &cased.WorkflowControlsApprovalSourcesParams{
 					Slack: &cased.WorkflowControlsApprovalSourcesSlackParams{
-						Channel: cased.String("#dewski-guard-test"),
+						Channel: cased.String("#cased"),
 					},
 				},
 			},
@@ -96,40 +103,49 @@ func triggerWorkflow(w *cased.Workflow, reason string) {
 
 	fmt.Printf("Created event %s\n", e.ID)
 
-	resolveEvent(w, e)
+	task := &task{
+		workflow:                  w,
+		event:                     e,
+		c:                         make(chan os.Signal, 1),
+		promptedForApproval:       false,
+		promptedForAuthentication: false,
+	}
+
+	task.resolve()
 }
 
-func refreshEvent(w *cased.Workflow, e *cased.Event) {
-	newEvent, err := event.Get(e.ID)
+func (t *task) refresh() {
+	newEvent, err := event.Get(t.event.ID)
 	if err != nil {
 		panic(err)
 	}
 
-	resolveEvent(w, newEvent)
+	t.event = newEvent
+	t.resolve()
 }
 
-func resolveEvent(w *cased.Workflow, e *cased.Event) {
-	switch e.Result.State {
+func (t *task) resolve() {
+	switch t.event.Result.State {
 	case cased.WorkflowStateFulfilled:
 		fmt.Println("Workflow successful!")
 	case cased.WorkflowStateUnfulfilled:
 		// The reason control is unfulfilled
-		reason := e.Result.Controls.Reason
+		reason := t.event.Result.Controls.Reason
 		if reason != nil && reason.State == cased.WorkflowStateUnfulfilled {
-			reasonPrompt(w, e)
+			t.reasonPrompt()
 			return
 		}
 
-		authentication := e.Result.Controls.Authentication
+		authentication := t.event.Result.Controls.Authentication
 		if authentication != nil && authentication.State == cased.WorkflowStateUnfulfilled {
-			authenticationPrompt(w, e, authentication)
+			t.authenticationPrompt(authentication)
 			return
 		}
 
 		// The reason control is unfulfilled
-		approval := e.Result.Controls.Approval
+		approval := t.event.Result.Controls.Approval
 		if approval != nil {
-			resolveApproval(w, e, approval)
+			t.resolveApproval(approval)
 			return
 		}
 	case cased.WorkflowStateRejected:
@@ -139,18 +155,18 @@ func resolveEvent(w *cased.Workflow, e *cased.Event) {
 
 // Prompt the user to authenticate with Cased per the configured workflow
 // controls.
-func authenticationPrompt(w *cased.Workflow, e *cased.Event, authentication *cased.ResultControlsAuthentication) {
-	if !promptedForAuthentication {
+func (t *task) authenticationPrompt(authentication *cased.ResultControlsAuthentication) {
+	if !t.promptedForAuthentication {
 		fmt.Printf("To login, please visit:\n%s\n", authentication.URL)
-		promptedForAuthentication = true
+		t.promptedForAuthentication = true
 	}
 
-	refreshEvent(w, e)
+	t.refresh()
 }
 
 // Prompt the user for a reason and trigger a new workflow with the provided
 // reason
-func reasonPrompt(w *cased.Workflow, e *cased.Event) {
+func (t *task) reasonPrompt() {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Provide a reason: ")
 	input, err := reader.ReadString('\n')
@@ -158,34 +174,48 @@ func reasonPrompt(w *cased.Workflow, e *cased.Event) {
 		panic(err)
 	}
 
-	triggerWorkflow(w, strings.TrimSpace(input))
+	triggerWorkflow(t.workflow, strings.TrimSpace(input))
+}
+
+func (t *task) notifyInterrupt(approvalID string) func() {
+	return func() {
+		signal.Notify(t.c, os.Interrupt)
+
+		go func() {
+			<-t.c
+			approval.Cancel(approvalID) //nolint:errcheck
+		}()
+	}
 }
 
 // Handle each approval state
-func resolveApproval(w *cased.Workflow, e *cased.Event, approval *cased.ResultControlsApproval) {
-	switch approval.State {
+func (t *task) resolveApproval(a *cased.ResultControlsApproval) {
+	t.once.Do(t.notifyInterrupt(a.ID))
+
+	switch a.State {
 	case cased.ResultControlsApprovalStatePending:
-		refreshEvent(w, e)
+		t.refresh()
 	case cased.ResultControlsApprovalStateRequested:
-		if !promptedForApproval {
+		if !t.promptedForApproval {
 			fmt.Println("Waiting for approval…")
-			promptedForApproval = true
+			t.promptedForApproval = true
 		}
 
-		refreshEvent(w, e)
+		t.refresh()
 	case cased.ResultControlsApprovalStateApproved:
-		newEvent, err := event.Get(e.ID)
+		newEvent, err := event.Get(t.event.ID)
 		if err != nil {
 			panic(err)
 		}
 
-		resolveEvent(w, newEvent)
+		t.event = newEvent
+		t.refresh()
 	case cased.ResultControlsApprovalStateDenied,
 		cased.ResultControlsApprovalStateTimedOut,
 		cased.ResultControlsApprovalStateCanceled:
-		fmt.Println(approval.State)
+		fmt.Println(a.State)
 		os.Exit(1)
 	default:
-		panic(fmt.Sprintf("Unhandled approval state: %s", approval.State))
+		panic(fmt.Sprintf("Unhandled approval state: %s", a.State))
 	}
 }
